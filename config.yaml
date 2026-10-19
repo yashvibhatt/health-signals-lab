@@ -40,6 +40,9 @@ forecast:
   arima:
     order: [2, 1, 1]      # fit on log(ILI)
     window_weeks: 156     # trailing window refit at every origin
+  # Model selection uses only forecasts whose target week is before this date (2023-24 and
+  # 2024-25 seasons); forecasts from origins on/after it (2025-26) are an untouched holdout.
+  selection_end: "2025-09-28"
   # Chosen from the backtest: XGBoost (national features only) had the lowest MAE/RMSE at h=2-4
   # and was within 0.005 MAE of LightGBM at h=1; correlated-state features did not improve it.
   production_model: xgboost    # model saved by `train` and used by `predict`

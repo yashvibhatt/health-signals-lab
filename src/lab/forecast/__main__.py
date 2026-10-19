@@ -107,6 +107,8 @@ def cmd_report() -> None:
            f"\n## MAE in other weeks (actual wILI < {HIGH_ACTIVITY}%)\n",
            _md_table(tab["low"].loc[order].add_prefix("h="), ".3f")]
 
+    md += _holdout_section(preds, pd.Timestamp(fcfg["selection_end"]), order, fcfg["production_model"])
+
     asof_file = out / "backtest_predictions_asof.csv"
     if asof_file.exists():
         md += _asof_section(y, origins, preds, pd.read_csv(asof_file), out)
@@ -114,6 +116,32 @@ def cmd_report() -> None:
     (out / "results.md").write_text("\n".join(md) + "\n")
     _plot(preds, fcfg["production_model"], out / "backtest_h1_h4.png")
     print("\n".join(md))
+
+
+def _holdout_section(preds, cutoff, order, production) -> list[str]:
+    """Pick the model on earlier seasons only, then score every model on the later holdout."""
+    sel = preds[preds["target_date"] < cutoff]
+    hold = preds[preds["origin"] >= cutoff]
+    sel_mae = _pivot(score(sel), "MAE").loc[order]
+    hold_mae = _pivot(score(hold), "MAE").loc[order]
+    sel_rank = sel_mae.mean(axis=1).sort_values()
+    hold_rank = hold_mae.mean(axis=1).sort_values()
+    chosen = sel_rank.index[0]
+    md = [f"\n## Model selection (target weeks before {cutoff.date()}) and untouched holdout "
+          f"(origins from {cutoff.date()})\n",
+          f"Selection period: {sel['origin'].nunique()} origins. Holdout: {hold['origin'].nunique()} origins.\n",
+          "Selection-period MAE:\n", _md_table(sel_mae, ".3f"),
+          "\nHoldout MAE:\n", _md_table(hold_mae, ".3f"),
+          "\nRank by mean MAE over horizons (1 = best): "
+          + "; ".join(f"{m}: selection {list(sel_rank.index).index(m) + 1}, holdout "
+                      f"{list(hold_rank.index).index(m) + 1}" for m in order) + ".\n",
+          f"Selected on the selection period: **{chosen}** (mean MAE {sel_rank.iloc[0]:.3f}). "
+          f"On the holdout it ranks {list(hold_rank.index).index(chosen) + 1} of {len(order)} "
+          f"(mean MAE {hold_rank[chosen]:.3f}; best on holdout: {hold_rank.index[0]}, "
+          f"{hold_rank.iloc[0]:.3f})."
+          + ("" if chosen == production else
+             f" NOTE: config production_model is {production}, not the selected model.")]
+    return md
 
 
 def _asof_section(y, origins, preds_revised, preds_asof, out) -> list[str]:

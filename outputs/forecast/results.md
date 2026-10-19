@@ -101,6 +101,38 @@ Correlated states (chosen on data before 2023-10-01): il, tn, pa, ca, ga.
 | lightgbm+states | 0.080 | 0.157 | 0.227 | 0.277 |
 | xgboost+states | 0.079 | 0.136 | 0.190 | 0.241 |
 
+## Model selection (target weeks before 2025-09-28) and untouched holdout (origins from 2025-09-28)
+
+Selection period: 103 origins. Holdout: 52 origins.
+
+Selection-period MAE:
+
+| model | h=1 | h=2 | h=3 | h=4 |
+|---|---|---|---|---|
+| persistence | 0.269 | 0.503 | 0.682 | 0.845 |
+| seasonal_naive | 0.781 | 0.782 | 0.782 | 0.773 |
+| arima | 0.195 | 0.425 | 0.678 | 0.848 |
+| lightgbm | 0.157 | 0.299 | 0.362 | 0.483 |
+| xgboost | 0.152 | 0.252 | 0.327 | 0.390 |
+| lightgbm+states | 0.158 | 0.288 | 0.356 | 0.423 |
+| xgboost+states | 0.162 | 0.273 | 0.326 | 0.394 |
+
+Holdout MAE:
+
+| model | h=1 | h=2 | h=3 | h=4 |
+|---|---|---|---|---|
+| persistence | 0.311 | 0.553 | 0.770 | 0.960 |
+| seasonal_naive | 0.570 | 0.574 | 0.578 | 0.580 |
+| arima | 0.232 | 0.527 | 0.804 | 1.023 |
+| lightgbm | 0.156 | 0.358 | 0.609 | 0.666 |
+| xgboost | 0.181 | 0.320 | 0.462 | 0.534 |
+| lightgbm+states | 0.191 | 0.380 | 0.573 | 0.615 |
+| xgboost+states | 0.204 | 0.336 | 0.469 | 0.531 |
+
+Rank by mean MAE over horizons (1 = best): persistence: selection 6, holdout 7; seasonal_naive: selection 7, holdout 5; arima: selection 5, holdout 6; lightgbm: selection 4, holdout 4; xgboost: selection 1, holdout 1; lightgbm+states: selection 3, holdout 3; xgboost+states: selection 2, holdout 2.
+
+Selected on the selection period: **xgboost** (mean MAE 0.280). On the holdout it ranks 1 of 7 (mean MAE 0.374; best on holdout: xgboost, 0.374).
+
 ## Real-time (as-of) data vs finalized data
 
 First-reported national wILI differed from the final value by a mean absolute 0.024 points (max 0.142; final minus first-reported: mean -0.009) over the 150 origin weeks with a published issue. The other 6 origins had no issue in Delphi and used finalized data.
