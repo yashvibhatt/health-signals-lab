@@ -5,7 +5,7 @@ PY ?= python
 -include .env
 export
 
-.PHONY: install data reports forecast backtest train predict classify test clean
+.PHONY: install data reports forecast backtest train predict classify gold-template evaluate test clean
 
 install:
 	$(PY) -m pip install -e ".[dev]"
@@ -26,6 +26,15 @@ train:
 
 predict:
 	$(PY) -m lab.forecast predict
+
+classify:      ## Module 1: Claude extraction over PubMed abstracts (needs ANTHROPIC_API_KEY)
+	$(PY) -m lab.classify run
+
+gold-template: ## blank 50-row labeling sheet -> data/gold_labels.csv (never overwrites)
+	$(PY) -m lab.classify template
+
+evaluate:      ## score study_type against your labels in data/gold_labels.csv
+	$(PY) -m lab.classify evaluate
 
 test:
 	$(PY) -m pytest -q
