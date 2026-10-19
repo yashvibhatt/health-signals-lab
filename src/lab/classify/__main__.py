@@ -44,7 +44,8 @@ def _md(df: pd.DataFrame) -> str:
 
 def cmd_template() -> None:
     cfg = load_config()["classify"]
-    created = write_gold_template(fetch_abstracts(), GOLD, cfg["gold_sample_size"], cfg["gold_seed"])
+    created = write_gold_template(fetch_abstracts(), GOLD, cfg["gold_sample_size"], cfg["gold_seed"],
+                                  sheet=path("raw") / "gold_labeling_sheet.csv")
     log.info("%s %s", "Created" if created else "Kept existing (not overwritten)", GOLD)
 
 

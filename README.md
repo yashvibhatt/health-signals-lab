@@ -8,6 +8,8 @@ Three small, reproducible pipelines on public respiratory-virus data:
 
 Every number in [Results](#results) is copied from a file the code writes; the source file is linked next to each table.
 
+Built with assistance from Claude Code; all design decisions, labeling, and results reviewed by me.
+
 ## Architecture
 
 ```mermaid
@@ -57,6 +59,7 @@ cp .env.example .env               # add ANTHROPIC_API_KEY (Module 1); DELPHI_AP
 | `make forecast` | Module 3: backtest → results → train → predict next 4 weeks |
 | `make classify` | Module 1: Claude extraction over the 300 abstracts (cached; reruns are free) |
 | `make evaluate` | Score `study_type` against the human labels in `data/gold_labels.csv` |
+| `make gold-template` | (Re)create the blank labeling files; never overwrites existing labels |
 | `make test` | 23 pytest tests (leakage, pipeline shape, correlation, extraction with a fake client) |
 
 Configuration lives in [`config.yaml`](config.yaml). Keys are read from `.env` (git-ignored), which overrides stale shell variables; nothing is hardcoded.
@@ -210,6 +213,8 @@ Forecasting, the class this lab cares most about, reaches 0.929 precision and re
 - The backtest covers 3 seasons; peak-week error rests on 37 weeks per horizon.
 
 ## Data sources
+
+`data/gold_labels.csv` stores PMID, title and the human labels only; abstract text is not committed and is re-fetched from PubMed by `make data`.
 
 - CDC ILINet via the [Delphi Epidata API](https://cmu-delphi.github.io/delphi-epidata/api/fluview.html) (`fluview`).
 - PubMed via [NCBI E-utilities](https://www.ncbi.nlm.nih.gov/books/NBK25499/).

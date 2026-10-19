@@ -12,20 +12,27 @@ from sklearn.metrics import accuracy_score, cohen_kappa_score, precision_recall_
 
 from lab.classify.schema import STUDY_TYPE_DEFINITIONS, STUDY_TYPES
 
-GOLD_COLUMNS = ["pmid", "title", "abstract", "study_type", "labeler_notes"]
+# The committed gold file carries no abstract text (publisher copyright); abstracts for labeling
+# go to a git-ignored sheet in data/raw/ and can always be re-fetched with `make data`.
+GOLD_COLUMNS = ["pmid", "title", "study_type", "labeler_notes"]
 
 
-def write_gold_template(abstracts: pd.DataFrame, out: Path, n: int, seed: int) -> bool:
-    """Create the blank labeling sheet. Never overwrites an existing file (it may hold labels)."""
+def write_gold_template(abstracts: pd.DataFrame, out: Path, n: int, seed: int,
+                        sheet: Path | None = None) -> bool:
+    """Create the blank gold file (pmid, title, labels) and, if `sheet` is given, a labeling sheet
+    that also shows each abstract. Never overwrites an existing gold file (it may hold labels)."""
     if out.exists():
         return False
     sample = abstracts.sample(n=n, random_state=seed).sort_values("pmid")
     template = sample[["pmid", "title", "abstract"]].assign(study_type="", labeler_notes="")
     template[GOLD_COLUMNS].to_csv(out, index=False)
+    if sheet is not None:
+        template.to_csv(sheet, index=False)
     guide = ["# Labeling guide for data/gold_labels.csv\n",
              f"Fill `study_type` for all {n} rows with exactly one of: "
              + ", ".join(f"`{t}`" for t in STUDY_TYPES) + ".",
-             "Label from the title and abstract only, choosing the study's PRIMARY aim. "
+             "Read the abstracts in `data/raw/gold_labeling_sheet.csv` (created by `make gold-template`; "
+             "not committed). Label from the title and abstract only, choosing the study's PRIMARY aim. "
              "Use `labeler_notes` for borderline cases. Do not look at model outputs while labeling.\n"]
     guide += [f"- **{k}**: {v}" for k, v in STUDY_TYPE_DEFINITIONS.items()]
     (out.parent / "LABELING_GUIDE.md").write_text("\n".join(guide) + "\n")

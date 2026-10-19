@@ -77,9 +77,12 @@ def test_method_families():
 def test_gold_template_is_blank_and_never_overwritten(tmp_path):
     abstracts = pd.DataFrame({"pmid": [str(i) for i in range(20)], "title": "t", "abstract": "a"})
     gold = tmp_path / "gold.csv"
-    assert write_gold_template(abstracts, gold, n=5, seed=0)
+    sheet = tmp_path / "sheet.csv"
+    assert write_gold_template(abstracts, gold, n=5, seed=0, sheet=sheet)
     df = pd.read_csv(gold, keep_default_na=False)
     assert len(df) == 5 and (df["study_type"] == "").all()
+    assert "abstract" not in df.columns                                 # no abstract text committed
+    assert "abstract" in pd.read_csv(sheet).columns                     # labeling sheet has it
     df.loc[0, "study_type"] = "review"
     df.to_csv(gold, index=False)
     assert not write_gold_template(abstracts, gold, n=5, seed=0)       # labels preserved

@@ -1,7 +1,7 @@
 # Labeling guide for data/gold_labels.csv
 
 Fill `study_type` for all 50 rows with exactly one of: `forecasting`, `surveillance`, `clinical`, `review`, `other`.
-Label from the title and abstract only, choosing the study's PRIMARY aim. Use `labeler_notes` for borderline cases. Do not look at model outputs while labeling.
+Read the abstracts in `data/raw/gold_labeling_sheet.csv` (created by `make gold-template`; not committed). Label from the title and abstract only, choosing the study's PRIMARY aim. Use `labeler_notes` for borderline cases. Do not look at model outputs while labeling.
 
 - **forecasting**: Primary aim is predicting future (or nowcasting current, not-yet-reported) disease activity, e.g. building or evaluating a forecasting/nowcasting model.
 - **surveillance**: Primary aim is describing, monitoring or detecting disease activity from surveillance data (trends, burden, seasonality, early warning, system evaluation) without forecasting as the main contribution.
