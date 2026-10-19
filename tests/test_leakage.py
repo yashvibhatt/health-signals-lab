@@ -47,16 +47,15 @@ def test_training_labels_observed_by_origin(h):
 
 
 def test_backtest_forecasts_unchanged_by_future_data():
+    """For EACH origin, corrupting every week after it must leave that origin's forecasts unchanged."""
     y = seasonal_series()
     extra = pd.DataFrame({"s1": seasonal_series(seed=1), "s2": seasonal_series(seed=2)})
-    origins = list(y.index[180:184])
     specs = default_specs(with_extra=True)
-    clean = run_backtest(y, origins, [1, 4], specs, CFG, extra_final=extra)
-    # Corrupt everything after the LAST origin's history; truth changes, forecasts must not.
-    last = origins[-1]
-    y2, extra2 = tamper_after(y, last), extra.apply(lambda s: tamper_after(s, last))
-    dirty = run_backtest(y2, origins, [1, 4], specs, CFG, extra_final=extra2)
-    pd.testing.assert_series_equal(clean["y_pred"], dirty["y_pred"])
+    for origin in y.index[180:184]:
+        clean = run_backtest(y, [origin], [1, 4], specs, CFG, extra_final=extra)
+        y2, extra2 = tamper_after(y, origin), extra.apply(lambda s: tamper_after(s, origin))
+        dirty = run_backtest(y2, [origin], [1, 4], specs, CFG, extra_final=extra2)
+        pd.testing.assert_series_equal(clean["y_pred"], dirty["y_pred"])
 
 
 def test_correlated_state_selection_ignores_backtest_period():

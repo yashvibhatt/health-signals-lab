@@ -22,13 +22,14 @@ log = logging.getLogger(__name__)
 @dataclass(frozen=True)
 class ModelSpec:
     name: str
-    kind: str                  # "tree" | "naive" | "arima"
+    kind: str                  # "tree" | "persistence" | "naive" | "arima"
     tree_kind: str | None = None
     use_extra: bool = False    # include correlated-state features
 
 
 def default_specs(with_extra: bool) -> list[ModelSpec]:
     specs = [
+        ModelSpec("persistence", "persistence"),
         ModelSpec("seasonal_naive", "naive"),
         ModelSpec("arima", "arima"),
         ModelSpec("lightgbm", "tree", "lightgbm"),
@@ -64,7 +65,9 @@ def run_backtest(
                 continue
             frames = {}
             for spec in specs:
-                if spec.kind == "naive":
+                if spec.kind == "persistence":
+                    pred = float(y_hist.iloc[-1])          # no change from the origin week
+                elif spec.kind == "naive":
                     pred = seasonal_naive(y_hist, h)
                 elif spec.kind == "arima":
                     pred = arima.forecast(y_hist, h, max_h=max(horizons))

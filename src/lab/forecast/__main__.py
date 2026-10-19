@@ -19,7 +19,7 @@ import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
 from lab.config import load_config, path  # noqa: E402
-from lab.data.delphi import asof_series, date_to_epiweek, load_ili, season_series  # noqa: E402
+from lab.data.delphi import asof_series, fetch_latest_national, issue_snapshot, load_ili, season_series  # noqa: E402
 from lab.forecast.backtest import default_specs, run_backtest, score  # noqa: E402
 from lab.forecast.features import feature_columns, make_features  # noqa: E402
 from lab.forecast.models import fit_tree, training_frame  # noqa: E402
@@ -84,7 +84,7 @@ def cmd_report() -> None:
     metrics = score(preds)
     metrics.to_csv(out / "backtest_metrics.csv", index=False)
 
-    order = ["seasonal_naive", "arima", "lightgbm", "xgboost", "lightgbm+states", "xgboost+states"]
+    order = ["persistence", "seasonal_naive", "arima", "lightgbm", "xgboost", "lightgbm+states", "xgboost+states"]
     md = ["# Backtest results (finalized data)\n",
           f"Origins: {len(origins)} weekly origins, {origins[0].date()} to {origins[-1].date()} "
           f"(expanding window, refit at every origin). Target: national wILI %.\n",
@@ -92,9 +92,11 @@ def cmd_report() -> None:
     for metric, fmt in [("MAE", ".3f"), ("RMSE", ".3f"), ("MAPE", ".1f")]:
         md += [f"\n## {metric}{' (%)' if metric == 'MAPE' else ''}\n",
                _md_table(_pivot(metrics, metric).loc[order], fmt)]
-    rel = _pivot(metrics, "MAE").loc[order]
-    rel = (1 - rel / rel.loc["seasonal_naive"]) * 100
-    md += ["\n## MAE skill vs seasonal naive (% reduction)\n", _md_table(rel, ".1f")]
+    mae = _pivot(metrics, "MAE").loc[order]
+    for base, title in [("persistence", "persistence (no change from origin week)"),
+                        ("seasonal_naive", "seasonal naive"), ("arima", "ARIMA")]:
+        md += [f"\n## MAE skill vs {title} (% reduction; positive = better)\n",
+               _md_table((1 - mae / mae.loc[base]) * 100, ".1f")]
 
     high = preds.assign(ae=(preds["y_pred"] - preds["y_true"]).abs(),
                         week=lambda d: d["y_true"].ge(HIGH_ACTIVITY).map({True: "high", False: "low"}))
@@ -123,29 +125,24 @@ def _asof_section(y, origins, preds_revised, preds_asof, out) -> list[str]:
     cmp["MAE_change_pct"] = (100 * (cmp["MAE_asof"] / cmp["MAE_revised"] - 1)).round(1)
     cmp.to_csv(out / "asof_vs_revised.csv", index=False)
 
-    first = pd.Series({t: asof_series(y, t).loc[t] for t in origins})
-    rev = y.loc[origins] - first
-    n_fallback = sum(not _issue_cached(t) for t in origins)
+    snaps = {t: issue_snapshot(t) for t in origins}
+    valid = [t for t, s in snaps.items() if s is not None and t in s.index]
+    first = pd.Series({t: snaps[t].loc[t] for t in valid})
+    rev = y.loc[valid] - first
+    n_fallback = len(origins) - len(valid)
     md = ["\n## Real-time (as-of) data vs finalized data\n",
           f"First-reported national wILI differed from the final value by a mean absolute "
           f"{rev.abs().mean():.3f} points (max {rev.abs().max():.3f}; final minus first-reported: "
-          f"mean {rev.mean():+.3f}) over {len(origins)} origin weeks. {n_fallback} origins had no "
-          f"published issue in Delphi and fell back to finalized data.\n",
+          f"mean {rev.mean():+.3f}) over the {len(valid)} origin weeks with a published issue. "
+          f"The other {n_fallback} origins had no issue in Delphi and used finalized data.\n",
           "MAE when models see data as published at each origin vs finalized data "
           "(national-only features; scored against finalized values):\n"]
-    for model in ["seasonal_naive", "arima", "lightgbm", "xgboost"]:
+    for model in ["persistence", "seasonal_naive", "arima", "lightgbm", "xgboost"]:
         c = cmp[cmp["model"] == model].set_index("horizon")
         md.append(f"- **{model}**: " + "; ".join(
             f"h={h}: {c.loc[h, 'MAE_revised']:.3f} → {c.loc[h, 'MAE_asof']:.3f} "
             f"({c.loc[h, 'MAE_change_pct']:+.1f}%)" for h in c.index))
     return md
-
-
-def _issue_cached(origin: pd.Timestamp) -> bool:
-    """True if Delphi returned data for the issue published right after `origin`."""
-    issue = date_to_epiweek((origin + pd.Timedelta(weeks=1)).date())
-    f = path("raw") / "fluview_issues" / f"nat_{issue}.csv"
-    return f.exists() and f.stat().st_size > 10
 
 
 def _plot(preds: pd.DataFrame, model: str, out) -> None:
@@ -205,17 +202,24 @@ def predict_next(bundle: dict, wide: pd.DataFrame, target: str) -> pd.DataFrame:
 
 def cmd_predict(refresh: bool) -> None:
     cfg = load_config()
+    target = cfg["forecast"]["target"]
     bundle = joblib.load(path("outputs") / "models" / "forecast.joblib")
-    wide = load_ili(refresh=refresh)
+    if bundle["states"]:
+        log.warning("Model uses state features; forecasting from the pinned analysis window")
+        wide = load_ili(refresh=refresh)
+    else:
+        # Newest published week. The latest weeks are preliminary, but the as-of backtest showed
+        # national first reports differ from final values by only a few hundredths of a point.
+        wide = fetch_latest_national(refresh=refresh).to_frame(target)
     if wide.index[-1] > bundle["trained_through"]:
         log.info("Data now runs to %s (model trained through %s)", wide.index[-1].date(),
                  bundle["trained_through"].date())
-    fc = predict_next(bundle, wide, cfg["forecast"]["target"])
+    fc = predict_next(bundle, wide, target)
     out = path("outputs") / "forecast" / "forecast_next4.csv"
     out.parent.mkdir(exist_ok=True)
     fc.to_csv(out, index=False)
     log.info("Latest observed national wILI: %.3f (week of %s)",
-             wide[cfg["forecast"]["target"]].iloc[-1], wide.index[-1].date())
+             wide[target].iloc[-1], wide.index[-1].date())
     print(fc.to_string(index=False))
 
 

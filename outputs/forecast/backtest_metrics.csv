@@ -11,6 +11,10 @@ lightgbm+states,1,0.168,0.302,4.9,156
 lightgbm+states,2,0.316,0.597,8.8,155
 lightgbm+states,3,0.424,0.723,12.3,154
 lightgbm+states,4,0.484,0.801,14.6,153
+persistence,1,0.282,0.481,8.1,156
+persistence,2,0.514,0.845,15.3,155
+persistence,3,0.699,1.091,21.7,154
+persistence,4,0.862,1.264,27.9,153
 seasonal_naive,1,0.707,1.091,22.1,156
 seasonal_naive,2,0.708,1.094,22.0,155
 seasonal_naive,3,0.707,1.095,22.0,154

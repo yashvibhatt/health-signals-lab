@@ -9,6 +9,7 @@ Correlated states (chosen on data before 2023-10-01): il, tn, pa, ca, ga.
 
 | model | h=1 | h=2 | h=3 | h=4 |
 |---|---|---|---|---|
+| persistence | 0.282 | 0.514 | 0.699 | 0.862 |
 | seasonal_naive | 0.707 | 0.708 | 0.707 | 0.701 |
 | arima | 0.207 | 0.454 | 0.707 | 0.884 |
 | lightgbm | 0.156 | 0.317 | 0.441 | 0.539 |
@@ -20,6 +21,7 @@ Correlated states (chosen on data before 2023-10-01): il, tn, pa, ca, ga.
 
 | model | h=1 | h=2 | h=3 | h=4 |
 |---|---|---|---|---|
+| persistence | 0.481 | 0.845 | 1.091 | 1.264 |
 | seasonal_naive | 1.091 | 1.094 | 1.095 | 1.091 |
 | arima | 0.428 | 0.950 | 1.364 | 1.593 |
 | lightgbm | 0.256 | 0.541 | 0.725 | 0.828 |
@@ -31,6 +33,7 @@ Correlated states (chosen on data before 2023-10-01): il, tn, pa, ca, ga.
 
 | model | h=1 | h=2 | h=3 | h=4 |
 |---|---|---|---|---|
+| persistence | 8.1 | 15.3 | 21.7 | 27.9 |
 | seasonal_naive | 22.1 | 22.0 | 22.0 | 21.7 |
 | arima | 5.7 | 12.1 | 19.5 | 25.4 |
 | lightgbm | 4.8 | 9.3 | 13.7 | 16.9 |
@@ -38,10 +41,23 @@ Correlated states (chosen on data before 2023-10-01): il, tn, pa, ca, ga.
 | lightgbm+states | 4.9 | 8.8 | 12.3 | 14.6 |
 | xgboost+states | 5.0 | 8.3 | 10.8 | 13.3 |
 
-## MAE skill vs seasonal naive (% reduction)
+## MAE skill vs persistence (no change from origin week) (% reduction; positive = better)
 
 | model | h=1 | h=2 | h=3 | h=4 |
 |---|---|---|---|---|
+| persistence | 0.0 | 0.0 | 0.0 | 0.0 |
+| seasonal_naive | -150.7 | -37.7 | -1.1 | 18.7 |
+| arima | 26.6 | 11.7 | -1.1 | -2.6 |
+| lightgbm | 44.7 | 38.3 | 36.9 | 37.5 |
+| xgboost | 42.9 | 46.9 | 47.1 | 49.5 |
+| lightgbm+states | 40.4 | 38.5 | 39.3 | 43.9 |
+| xgboost+states | 37.9 | 43.2 | 47.1 | 49.4 |
+
+## MAE skill vs seasonal naive (% reduction; positive = better)
+
+| model | h=1 | h=2 | h=3 | h=4 |
+|---|---|---|---|---|
+| persistence | 60.1 | 27.4 | 1.1 | -23.0 |
 | seasonal_naive | 0.0 | 0.0 | 0.0 | 0.0 |
 | arima | 70.7 | 35.9 | 0.0 | -26.1 |
 | lightgbm | 77.9 | 55.2 | 37.6 | 23.1 |
@@ -49,10 +65,23 @@ Correlated states (chosen on data before 2023-10-01): il, tn, pa, ca, ga.
 | lightgbm+states | 76.2 | 55.4 | 40.0 | 31.0 |
 | xgboost+states | 75.2 | 58.8 | 47.7 | 37.8 |
 
+## MAE skill vs ARIMA (% reduction; positive = better)
+
+| model | h=1 | h=2 | h=3 | h=4 |
+|---|---|---|---|---|
+| persistence | -36.2 | -13.2 | 1.1 | 2.5 |
+| seasonal_naive | -241.5 | -55.9 | 0.0 | 20.7 |
+| arima | 0.0 | 0.0 | 0.0 | 0.0 |
+| lightgbm | 24.6 | 30.2 | 37.6 | 39.0 |
+| xgboost | 22.2 | 39.9 | 47.7 | 50.8 |
+| lightgbm+states | 18.8 | 30.4 | 40.0 | 45.2 |
+| xgboost+states | 15.5 | 35.7 | 47.7 | 50.7 |
+
 ## MAE in high-activity weeks (actual wILI ≥ 4.0%, n=37 per horizon)
 
 | model | h=1 | h=2 | h=3 | h=4 |
 |---|---|---|---|---|
+| persistence | 0.717 | 1.235 | 1.545 | 1.777 |
 | seasonal_naive | 1.652 | 1.652 | 1.652 | 1.652 |
 | arima | 0.588 | 1.346 | 1.996 | 2.368 |
 | lightgbm | 0.368 | 0.769 | 0.970 | 1.125 |
@@ -64,6 +93,7 @@ Correlated states (chosen on data before 2023-10-01): il, tn, pa, ca, ga.
 
 | model | h=1 | h=2 | h=3 | h=4 |
 |---|---|---|---|---|
+| persistence | 0.146 | 0.288 | 0.431 | 0.570 |
 | seasonal_naive | 0.414 | 0.411 | 0.408 | 0.397 |
 | arima | 0.088 | 0.174 | 0.299 | 0.410 |
 | lightgbm | 0.090 | 0.175 | 0.274 | 0.352 |
@@ -73,10 +103,11 @@ Correlated states (chosen on data before 2023-10-01): il, tn, pa, ca, ga.
 
 ## Real-time (as-of) data vs finalized data
 
-First-reported national wILI differed from the final value by a mean absolute 0.024 points (max 0.142; final minus first-reported: mean -0.009) over 156 origin weeks. 6 origins had no published issue in Delphi and fell back to finalized data.
+First-reported national wILI differed from the final value by a mean absolute 0.024 points (max 0.142; final minus first-reported: mean -0.009) over the 150 origin weeks with a published issue. The other 6 origins had no issue in Delphi and used finalized data.
 
 MAE when models see data as published at each origin vs finalized data (national-only features; scored against finalized values):
 
+- **persistence**: h=1: 0.282 → 0.284 (+0.7%); h=2: 0.514 → 0.516 (+0.4%); h=3: 0.699 → 0.700 (+0.1%); h=4: 0.862 → 0.864 (+0.2%)
 - **seasonal_naive**: h=1: 0.707 → 0.707 (+0.0%); h=2: 0.708 → 0.708 (+0.0%); h=3: 0.707 → 0.707 (+0.0%); h=4: 0.701 → 0.701 (+0.0%)
 - **arima**: h=1: 0.207 → 0.207 (+0.0%); h=2: 0.454 → 0.453 (-0.2%); h=3: 0.707 → 0.705 (-0.3%); h=4: 0.884 → 0.879 (-0.6%)
 - **lightgbm**: h=1: 0.156 → 0.160 (+2.6%); h=2: 0.317 → 0.311 (-1.9%); h=3: 0.441 → 0.436 (-1.1%); h=4: 0.539 → 0.532 (-1.3%)

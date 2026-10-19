@@ -170,12 +170,11 @@ def season_series(index: pd.DatetimeIndex) -> pd.Series:
     return pd.Series(labels, index=index, name="season")
 
 
-def asof_series(final: pd.Series, origin: pd.Timestamp, location: str = NATIONAL) -> pd.Series:
-    """Series as it was known right after week `origin` was first reported.
+def issue_snapshot(origin: pd.Timestamp, location: str = NATIONAL) -> pd.Series | None:
+    """Values exactly as published in the weekly issue right after week `origin` (cached).
 
-    CDC's issue for week N+1 carries values for the trailing ~52 weeks through week N; those
-    replace the finalized values. Older weeks (rarely revised after a year) keep final values.
-    Falls back to finalized data if the issue was not published (logged).
+    CDC's issue for week N+1 carries the trailing ~52 weeks through week N. Returns None if
+    Delphi has no such issue.
     """
     issue = date_to_epiweek((origin + pd.Timedelta(weeks=1)).date())
     cache_dir = path("raw") / "fluview_issues"
@@ -189,11 +188,42 @@ def asof_series(final: pd.Series, origin: pd.Timestamp, location: str = NATIONAL
     else:
         snap = fetch_locations([location], 199740, issue, issue=issue)
         snap.to_csv(cache, index=False)
-    s = final.loc[:origin].copy()
     if snap.empty or "wili" not in snap:
-        log.warning("No issue %s for %s; using finalized data at origin %s", issue, location, origin.date())
-        return s
-    vals = pd.Series(snap["wili"].to_numpy(),
+        return None
+    return pd.Series(snap["wili"].to_numpy(),
                      index=pd.to_datetime([epiweek_start(e) for e in snap["epiweek"]]))
-    s.update(vals[vals.index <= origin])
+
+
+def asof_series(final: pd.Series, origin: pd.Timestamp, location: str = NATIONAL) -> pd.Series:
+    """Series as it was known right after week `origin` was first reported.
+
+    Weeks in the issue snapshot replace finalized values; older weeks (rarely revised after a
+    year) keep final values. Falls back to finalized data if the issue is missing (logged).
+    """
+    s = final.loc[:origin].copy()
+    snap = issue_snapshot(origin, location)
+    if snap is None:
+        log.warning("No issue after %s for %s; using finalized data", origin.date(), location)
+        return s
+    if origin not in snap.index:
+        log.warning("Issue after %s lacks that week; using finalized value for it", origin.date())
+    s.update(snap[snap.index <= origin])
     return s
+
+
+def fetch_latest_national(refresh: bool = False) -> pd.Series:
+    """National wILI from the configured start through the newest published week (for `predict`).
+
+    Unlike the pinned analysis window, this always extends to today. Cached until --refresh.
+    """
+    cfg = load_config()["delphi"]
+    cache = path("raw") / "fluview_nat_latest.csv"
+    if cache.exists() and not refresh:
+        df = pd.read_csv(cache)
+    else:
+        df = fetch_locations([NATIONAL], cfg["start_epiweek"], date_to_epiweek(date.today()))
+        df.to_csv(cache, index=False)
+    y = pd.Series(df["wili"].to_numpy(), index=pd.to_datetime([epiweek_start(e) for e in df["epiweek"]]),
+                  name=NATIONAL).sort_index()
+    y.index.name = "week_start"
+    return y
