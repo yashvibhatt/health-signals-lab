@@ -180,6 +180,47 @@ def main() -> None:
     )
     (out_dir / "index.html").write_text(html)
     log.info("Wrote %d region reports + index -> %s", len(index_rows), out_dir / "index.html")
+    write_summary(out_dir / "summary.md", vs_all, vs_all_ex, vs_all_hol, all_pairs, timing, index_rows,
+                  summary, min_r, min_gain)
+
+
+def write_summary(out, vs, vs_covid, vs_hol, pairs, timing, regions, summary, min_r, min_gain) -> None:
+    """Headline aggregates for the README, so every quoted number comes from a generated file."""
+    lo, hi = vs.loc[vs["r_lag0"].idxmin()], vs.loc[vs["r_lag0"].idxmax()]
+    no_gain = pairs[(pairs["peak_lag"] != 0) & (pairs["peak_r"] >= min_r)]
+    leads = pairs[pairs["leader"].notna()].sort_values("peak_r", ascending=False)
+    med = timing.median().sort_values()
+    lines = [
+        "# Module 2 summary\n",
+        f"{summary['n_weeks']} weeks ({summary['start']} to {summary['end']}), {summary['n_seasons']} seasons, "
+        f"{len(vs)} jurisdictions + national.\n",
+        f"- States vs national, peak lag counts: {({int(k): int(v) for k, v in sorted(vs['peak_lag'].value_counts().items())})}",
+        f"- r at lag 0 vs national: median {vs['r_lag0'].median():.2f}, min {lo['r_lag0']:.2f} "
+        f"({label(lo['location'])}), max {hi['r_lag0']:.2f} ({label(hi['location'])})",
+        f"- Peak lag vs national changes when excluding COVID seasons: "
+        f"{int((vs['peak_lag'] != vs_covid['peak_lag']).sum())} of {len(vs)}; excluding holiday weeks: "
+        f"{int((vs['peak_lag'] != vs_hol['peak_lag']).sum())} of {len(vs)}",
+        f"- State pairs: {len(pairs)}; peak at lag 0: {int((pairs['peak_lag'] == 0).sum())}; "
+        f"meet lead rule (lag != 0, r >= {min_r}, gain >= {min_gain}): {len(leads)}",
+        f"- Without the gain rule: {len(no_gain)} pairs, median gain over lag 0 "
+        f"{no_gain['gain_over_lag0'].median():.3f}",
+        f"- Within-HHS-region pairs: {sum(r['n_pairs'] for r in regions)}; meeting the lead rule: "
+        f"{sum(r['n_leads'] for r in regions)}",
+        f"- Seasonal peak timing ({len(timing)} non-COVID seasons): {int((med.abs() <= 1).sum())} of {len(med)} "
+        f"states have median within ±1 week of national; earliest {label(med.index[0])} "
+        f"({med.iloc[0]:+.1f} wk), latest {label(med.index[-1])} ({med.iloc[-1]:+.1f} wk)",
+    ]
+    if len(leads):
+        lines += [
+            f"- Lead pairs: peak r {leads['peak_r'].min():.2f}-{leads['peak_r'].max():.2f} "
+            f"(median {leads['peak_r'].median():.2f}); lead weeks {({int(k): int(v) for k, v in leads['lead_weeks'].value_counts().items()})}\n",
+            "| Leader | Follower | Lead (wk) | Peak r | r at lag 0 | Gain |",
+            "|---|---|---|---|---|---|",
+            *(f"| {label(r.leader)} | {label(r.follower)} | {r.lead_weeks} | {r.peak_r:.3f} | "
+              f"{r.r_lag0:.3f} | {r.gain_over_lag0:.3f} |" for r in leads.itertuples()),
+        ]
+    out.write_text("\n".join(lines) + "\n")
+    log.info("Wrote %s", out)
 
 
 if __name__ == "__main__":

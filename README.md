@@ -65,7 +65,7 @@ Configuration lives in [`config.yaml`](config.yaml). Keys are read from `.env` (
 
 ### Module 2: Which states lead? (weekly ILI, 2018-09-30 to 2026-09-27)
 
-418 weeks, 8 seasons, 49 states + DC. Sources: [`xcorr_vs_national.csv`](outputs/reports/xcorr_vs_national.csv), [`xcorr_state_pairs.csv`](outputs/reports/xcorr_state_pairs.csv), [reports index](outputs/reports/index.html).
+418 weeks, 8 seasons, 49 states + DC. Sources: [`outputs/reports/summary.md`](outputs/reports/summary.md) (all figures below), [`xcorr_vs_national.csv`](outputs/reports/xcorr_vs_national.csv), [`xcorr_state_pairs.csv`](outputs/reports/xcorr_state_pairs.csv), [reports index](outputs/reports/index.html).
 
 | Check | Result |
 |---|---|
@@ -99,7 +99,7 @@ Configuration lives in [`config.yaml`](config.yaml). Keys are read from `.env` (
 - **Skill vs persistence:** XGBoost has 42.9% / 46.9% / 47.1% / 49.5% lower MAE at 1–4 weeks. Against ARIMA it is 50.8% lower at 4 weeks.
 - **Peak weeks are harder:** in the 37 weeks where actual ILI ≥ 4%, XGBoost's 4-week MAE is 0.910, against 0.284 in other weeks.
 - **Correlated states (IL, TN, PA, CA, GA):** about no change overall for XGBoost at 4 weeks (0.435 → 0.436). They help in other weeks (0.284 → 0.241) and hurt in peak weeks (0.910 → 1.047), so the production model leaves them out.
-- **Untouched holdout:** the model was chosen on target weeks before 2025-09-28 (103 origins). XGBoost ranked 1st there and is also **1st on the 2025-26 holdout** (52 origins), with mean MAE 0.374 across horizons. The four ML variants keep the same ranking (1–4) on both periods. Holdout 4-week MAE is 0.534 for XGBoost and 0.960 for persistence.
+- **Holdout check:** selecting on target weeks before 2025-09-28 alone (103 origins) picks XGBoost, which is also **1st on the 2025-26 season** (52 origins), with mean MAE 0.374 across horizons. No hyperparameters were tuned. The four ML variants keep the same ranking (1–4) on both periods. Holdout 4-week MAE is 0.534 for XGBoost and 0.960 for persistence.
 - **Real-time vs revised data:** first-reported national ILI differed from final values by a mean absolute 0.024 points (max 0.142) over 150 origins with a published issue. Rerunning on as-published data changed MAE by at most ±3.0% for every model and horizon (XGBoost 4-week: 0.435 → 0.432).
 
 ![Backtest: actual vs XGBoost and seasonal naive, 1- and 4-week-ahead](outputs/forecast/backtest_h1_h4.png)
@@ -112,7 +112,7 @@ Model `claude-haiku-4-5-20251001`. Sources: [`summary.md`](outputs/classify/summ
 - **Predicted study types:** surveillance 161, forecasting 89, review 26, other 15, clinical 9.
 - **Methods:** 204 abstracts name at least one method. The most common families are regression (49), other time-series methods (28), LSTM/RNN (23), ARIMA (21) and lab/genomic methods (20). Full table by year: [`methods_by_year.csv`](outputs/classify/methods_by_year.csv).
 
-**Evaluation against 50 human labels** (labeled blind, before any model output was viewed):
+**Evaluation against 50 human labels** (one annotator; labeled without viewing model outputs, per the labeler):
 
 | Metric | Value |
 |---|---|
@@ -128,7 +128,12 @@ Model `claude-haiku-4-5-20251001`. Sources: [`summary.md`](outputs/classify/summ
 | review | 1.000 | 1.000 | 4 |
 | other | 0.667 | 0.250 | 8 |
 
-11 of the 13 disagreements are abstracts Claude labeled `surveillance` that the human labeled `clinical` (6) or `other` (5). Examples are population-level trends in pediatric hospitalizations, vaccination in pregnancy, and wastewater detection methods. These sit on a genuine boundary: the `surveillance` definition mentions "burden" and "trends", which covers them. Forecasting, the class this lab cares most about, reaches 0.929 precision and recall. Disagreements are listed in [`evaluation_errors.csv`](outputs/classify/evaluation_errors.csv).
+11 of the 13 disagreements are abstracts Claude labeled `surveillance` that the human labeled `clinical` (6) or `other` (5). They fall into two groups:
+
+- **Genuinely ambiguous:** the 6 clinical → surveillance cases are population-level studies of patients, such as trends in pediatric influenza hospitalizations or vaccination in pregnancy. The `surveillance` definition's mention of "burden" and "trends" overlaps with `clinical` here, and the definitions should be tightened.
+- **Model errors:** at least 3 of the 5 other → surveillance cases are wrong under the shared definitions, which put lab/virology and genomics in `other`. They are a molecular RSV strain study, a comparison of wastewater detection methods, and wastewater antibiotic-use tracking (not disease activity). Claude over-assigns `surveillance` whenever surveillance data is present, consistent with `other` recall of 0.25.
+
+Forecasting, the class this lab cares most about, reaches 0.929 precision and recall. All disagreements are listed in [`evaluation_errors.csv`](outputs/classify/evaluation_errors.csv).
 
 ## Methodological decisions
 
@@ -177,8 +182,9 @@ Model `claude-haiku-4-5-20251001`. Sources: [`summary.md`](outputs/classify/summ
 - The tests corrupt every week after each origin and check that the forecasts are identical, and that features at week t depend only on weeks ≤ t.
 
 **Model selection without optimism.**
-- The production model (XGBoost, national features only) was chosen on 2023-24 and 2024-25 targets only.
-- The 2025-26 season was then scored as an untouched holdout, and the ranking held.
+- The first model choice used the full 2023-26 backtest, which flatters it slightly.
+- As a check, selecting on 2023-24 and 2024-25 targets alone picks the same model (XGBoost, national features only), and it is also best on 2025-26. Hyperparameters were fixed up front and never tuned, so this is a fair out-of-sample check.
+- The 2025-26 season was seen in the full-period table before the split, so it isn't a strictly untouched holdout.
 - Baselines include persistence, the standard flu-forecasting reference, so skill isn't measured only against a weak seasonal-naive baseline.
 
 **Revised vs real-time data.**
@@ -198,7 +204,7 @@ Model `claude-haiku-4-5-20251001`. Sources: [`summary.md`](outputs/classify/summ
 
 ## Limitations
 
-- One annotator labeled the gold set, so there is no inter-annotator agreement. The clinical/surveillance boundary should be tightened in the definitions and re-checked on a new sample.
+- One annotator labeled the gold set, so there is no inter-annotator agreement, and blind labeling rests on the labeler's report. The clinical/surveillance boundary should be tightened in the definitions and re-checked on a new sample.
 - The PubMed query is ranked by relevance and also returns COVID-19 and general influenza papers. The extracted counts describe this sample of 300, not the whole field.
 - Forecasts are point forecasts. The CDC FluSight standard is probabilistic (quantiles and WIS), which is a natural next step.
 - The backtest covers 3 seasons; peak-week error rests on 37 weeks per horizon.
