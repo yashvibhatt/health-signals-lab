@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HHS Region 10 ILI Lead-Lag</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface: #fcfcfb; --surface-2: #f4f3f0; --border: #e4e3df;
+    --text: #0b0b0b; --text-2: #52514e; --accent: #2a78d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --surface: #1a1a19; --surface-2: #232322; --border: #383835;
+      --text: #f0efec; --text-2: #c3c2b7; --accent: #3987e5;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface: #1a1a19; --surface-2: #232322; --border: #383835;
+    --text: #f0efec; --text-2: #c3c2b7; --accent: #3987e5;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--surface); color: var(--text);
+         font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  h2 { font-size: 1.15rem; margin: 36px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .meta { color: var(--text-2); font-size: .9rem; }
+  a { color: var(--accent); }
+  /* Charts are rendered on a light background; give them a light card in dark mode too. */
+  figure { margin: 12px 0; background: #fcfcfb; border: 1px solid var(--border); border-radius: 8px;
+           padding: 8px; overflow-x: auto; }
+  figure img { display: block; max-width: 100%; height: auto; }
+  figcaption { color: #52514e; font-size: .85rem; padding: 6px 4px 0; }
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .88rem; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { color: var(--text-2); font-weight: 600; background: var(--surface-2); }
+  ul.findings li { margin-bottom: 8px; }
+  .note { background: var(--surface-2); border-left: 3px solid var(--accent); padding: 10px 14px;
+          border-radius: 4px; color: var(--text-2); font-size: .9rem; }
+  .stats { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+  .stat { background: var(--surface-2); border-radius: 8px; padding: 10px 16px; min-width: 140px; }
+  .stat b { display: block; font-size: 1.3rem; }
+  .stat span { color: var(--text-2); font-size: .82rem; }
+</style>
+</head>
+<body><main>
+
+<p class="meta"><a href="index.html">&larr; All regions</a></p>
+<h1>HHS Region 10: ILI lead/lag report</h1>
+<p class="meta">AK, ID, OR, WA</p>
+
+<h2>Findings</h2>
+<ul class="findings">
+<li>Across 6 state pairs in HHS Region 10, 5 (83%) have their strongest week-over-week correlation at lag 0, i.e. they move in the same week. 0 pairs show a lead of 1 or more weeks (peak r ≥ 0.3 and at least 0.05 higher than at lag 0).</li><li>The most tightly linked pair is OR and WA (r = 0.68 at lag +0).</li><li>Compared with national ILI, all 4 states move in the same week as the national curve (peak correlation at lag 0, r = 0.31 to 0.66).</li><li>By seasonal peak timing (median over 6 non-COVID seasons), AK peaks earliest (-5.5 weeks vs the national peak) and OR latest (+2.0 weeks).</li><li>Robustness: excluding the 2020-21 and 2021-22 seasons changes the peak lag vs national for 0 of 4 states.</li><li>Robustness: excluding the late-December/early-January holiday weeks changes the peak lag vs national for 2 of 4 states (AK and ID).</li>
+</ul>
+
+<h2>Data summary</h2>
+<div class="stats">
+  <div class="stat"><b>418</b><span>weeks (2018-09-30 to 2026-09-27)</span></div>
+  <div class="stat"><b>8</b><span>flu seasons</span></div>
+  <div class="stat"><b>4</b><span>states analysed</span></div>
+  <div class="stat"><b>6</b><span>state pairs</span></div>
+</div>
+<p class="note">Data notes: AK (included, but no data for 2025-26); OR (included, but no data for 2025-26).</p>
+<div class="table-wrap"><table>
+  <tr><th>State</th><th>Mean ILI %</th><th>Max ILI %</th><th>Week of max</th><th>Missing weeks</th></tr>
+  <tr><td>AK</td><td>2.02</td><td>11.72</td><td>2019-12-22</td><td>53</td></tr><tr><td>ID</td><td>1.83</td><td>11.48</td><td>2025-12-21</td><td>0</td></tr><tr><td>OR</td><td>1.72</td><td>11.66</td><td>2024-12-22</td><td>53</td></tr><tr><td>WA</td><td>1.77</td><td>12.93</td><td>2022-11-20</td><td>0</td></tr>
+</table></div>
+<figure><img src="hhs10_series.png" alt="Weekly ILI percentage for each state in HHS Region 10 and national, 2018-09-30 to 2026-09-27">
+<figcaption>Weekly ILI % (share of outpatient visits for influenza-like illness). Black = national. Shaded = COVID-era seasons.</figcaption></figure>
+
+<h2>Lead/lag heatmap</h2>
+<p>Each cell compares the week-over-week change in ILI between two states at lags −4 to +4 weeks.
+The number is the lag with the highest correlation; <b>+k</b> means the row state's changes appear in the column state <b>k weeks later</b>.</p>
+<figure><img src="hhs10_heatmap.png" alt="Heatmap of peak lag between every pair of states in HHS Region 10">
+<figcaption>Blue = row leads, red = row lags, grey = same week. r = peak correlation of weekly changes.</figcaption></figure>
+
+<h2>Top pairs</h2>
+<div class="table-wrap"><table>
+  <tr><th>Pair</th><th>Peak lag (wk)</th><th>Peak r</th><th>r at lag 0</th><th>Gain over lag 0</th><th>Interpretation</th></tr>
+  <tr><td>OR – WA</td><td>+0</td><td>0.684</td><td>0.684</td><td>0.000</td><td>Move in the same week</td></tr><tr><td>ID – OR</td><td>+0</td><td>0.452</td><td>0.452</td><td>0.000</td><td>Move in the same week</td></tr><tr><td>ID – WA</td><td>+0</td><td>0.415</td><td>0.415</td><td>0.000</td><td>Move in the same week</td></tr><tr><td>AK – OR</td><td>+0</td><td>0.240</td><td>0.240</td><td>0.000</td><td>Move in the same week</td></tr><tr><td>AK – WA</td><td>+0</td><td>0.216</td><td>0.216</td><td>0.000</td><td>Move in the same week</td></tr><tr><td>AK – ID</td><td>-1</td><td>0.129</td><td>0.110</td><td>0.018</td><td>Peak at lag -1 but r < 0.3</td></tr>
+</table></div>
+
+<h2>Each state vs national</h2>
+<figure><img src="hhs10_vs_national.png" alt="Bar chart of each state's peak lag relative to national ILI">
+<figcaption>Positive = the state's weekly changes come before the national ones.</figcaption></figure>
+<div class="table-wrap"><table>
+  <tr><th>State</th><th>Peak lag (wk)</th><th>Peak r</th><th>Peak lag excl. COVID seasons</th><th>Peak lag excl. holiday weeks</th><th>Median peak timing vs national (wk)</th></tr>
+  <tr><td>AK</td><td>+0</td><td>0.307</td><td>+0</td><td>-3</td><td>-5.5</td></tr><tr><td>ID</td><td>+0</td><td>0.512</td><td>+0</td><td>-2</td><td>+0.0</td></tr><tr><td>OR</td><td>+0</td><td>0.627</td><td>+0</td><td>+0</td><td>+2.0</td></tr><tr><td>WA</td><td>+0</td><td>0.655</td><td>+0</td><td>+0</td><td>+1.0</td></tr>
+</table></div>
+
+<h2>Method</h2>
+<p class="note">Series: weighted ILI % per epiweek. Correlations use first differences (week-over-week change) so the shared
+winter seasonality does not dominate. r(k) = corr(ΔA<sub>t</sub>, ΔB<sub>t+k</sub>) for k ∈ [−4, +4].
+A pair is called lead/lag only if the peak is at k ≠ 0, peak r ≥ 0.3, and peak r exceeds r at lag 0 by ≥ 0.05
+(about one standard error of r at this sample size). Seasonal peaks are located on a 3-week centred rolling mean; peak-timing medians exclude 2020-21 and 2021-22.
+Holiday robustness masks MMWR weeks 51, 52, 53, 1, 2, when routine visits fall and ILI % jumps nationwide.
+The national series includes every state, so part of each state's lag-0 correlation with national is mechanical (largest for big states such as CA, TX, NY).
+These are associations in reported surveillance data, not evidence of transmission direction.</p>
+
+<p class="meta" style="margin-top:48px">Generated 2026-10-19 12:40 by <code>python -m lab.reports</code>.
+Data: CDC ILINet via the Delphi Epidata <code>fluview</code> endpoint. All text is templated from computed numbers.</p>
+</main></body>
+</html>

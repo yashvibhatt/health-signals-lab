@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ILI Lead-Lag Reports</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface: #fcfcfb; --surface-2: #f4f3f0; --border: #e4e3df;
+    --text: #0b0b0b; --text-2: #52514e; --accent: #2a78d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --surface: #1a1a19; --surface-2: #232322; --border: #383835;
+      --text: #f0efec; --text-2: #c3c2b7; --accent: #3987e5;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface: #1a1a19; --surface-2: #232322; --border: #383835;
+    --text: #f0efec; --text-2: #c3c2b7; --accent: #3987e5;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--surface); color: var(--text);
+         font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  h2 { font-size: 1.15rem; margin: 36px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .meta { color: var(--text-2); font-size: .9rem; }
+  a { color: var(--accent); }
+  /* Charts are rendered on a light background; give them a light card in dark mode too. */
+  figure { margin: 12px 0; background: #fcfcfb; border: 1px solid var(--border); border-radius: 8px;
+           padding: 8px; overflow-x: auto; }
+  figure img { display: block; max-width: 100%; height: auto; }
+  figcaption { color: #52514e; font-size: .85rem; padding: 6px 4px 0; }
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .88rem; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { color: var(--text-2); font-weight: 600; background: var(--surface-2); }
+  ul.findings li { margin-bottom: 8px; }
+  .note { background: var(--surface-2); border-left: 3px solid var(--accent); padding: 10px 14px;
+          border-radius: 4px; color: var(--text-2); font-size: .9rem; }
+  .stats { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+  .stat { background: var(--surface-2); border-radius: 8px; padding: 10px 16px; min-width: 140px; }
+  .stat b { display: block; font-size: 1.3rem; }
+  .stat span { color: var(--text-2); font-size: .82rem; }
+</style>
+</head>
+<body><main>
+
+<h1>ILI lead/lag reports by HHS region</h1>
+<p class="meta">418 weeks, 2018-09-30 to 2026-09-27 · 8 seasons · 51 jurisdictions</p>
+
+<h2>Regions</h2>
+<div class="table-wrap"><table>
+  <tr><th>Report</th><th>States</th><th>Pairs</th><th>Lead/lag pairs</th><th>Strongest lead</th></tr>
+  <tr><td><a href="hhs1.html">HHS Region 1</a></td><td>6</td><td>15</td><td>0</td><td>none</td></tr><tr><td><a href="hhs2.html">HHS Region 2</a></td><td>2</td><td>1</td><td>0</td><td>none</td></tr><tr><td><a href="hhs3.html">HHS Region 3</a></td><td>6</td><td>15</td><td>0</td><td>none</td></tr><tr><td><a href="hhs4.html">HHS Region 4</a></td><td>7</td><td>21</td><td>0</td><td>none</td></tr><tr><td><a href="hhs5.html">HHS Region 5</a></td><td>6</td><td>15</td><td>0</td><td>none</td></tr><tr><td><a href="hhs6.html">HHS Region 6</a></td><td>5</td><td>10</td><td>0</td><td>none</td></tr><tr><td><a href="hhs7.html">HHS Region 7</a></td><td>4</td><td>6</td><td>0</td><td>none</td></tr><tr><td><a href="hhs8.html">HHS Region 8</a></td><td>6</td><td>15</td><td>0</td><td>none</td></tr><tr><td><a href="hhs9.html">HHS Region 9</a></td><td>4</td><td>6</td><td>0</td><td>none</td></tr><tr><td><a href="hhs10.html">HHS Region 10</a></td><td>4</td><td>6</td><td>0</td><td>none</td></tr>
+</table></div>
+
+<h2>Nationwide: states whose weekly changes precede national ILI</h2>
+<p>Every jurisdiction vs the national series (all seasons). Sorted by peak r among states with a positive peak lag.</p>
+<div class="table-wrap"><table>
+  <tr><th>State</th><th>Leads national by (wk)</th><th>Peak r</th><th>r at lag 0</th></tr>
+  <tr><td colspan="4">No state's weekly changes lead national under the lead/lag rule.</td></tr>
+</table></div>
+<p class="meta">Peak-lag distribution, 50 states vs national:
+lag +0: 50.
+Excluding holiday weeks: lag -3: 1 · lag -2: 2 · lag +0: 47.</p>
+<p>Across all 1225 state pairs, 1117 peak at lag 0 and 15 meet the lead/lag rule
+(peak at k ≠ 0, r ≥ 0.3, and ≥ 0.05 above lag-0 r). Full table: <code>xcorr_state_pairs.csv</code>.</p>
+
+<h2>Data coverage notes</h2>
+<ul><li><b>FL</b>: excluded: only 62% of weeks reported (first week 202140; threshold 85%)</li><li><b>JFK</b>: excluded: NYC reported separately and series ends 2025-W39; NY uses NY-excl.-NYC instead</li><li><b>PR</b>: excluded: territory; outside the 50 states + DC comparison</li><li><b>VI</b>: excluded: territory; outside the 50 states + DC comparison</li><li><b>AK</b>: included, but no data for 2025-26</li><li><b>CT</b>: included, but no data for 2025-26</li><li><b>HI</b>: included, but no data for 2025-26</li><li><b>OK</b>: included, but no data for 2025-26</li><li><b>OR</b>: included, but no data for 2025-26</li><li><b>SD</b>: included, but no data for 2025-26</li><li><b>UT</b>: included, but no data for 2025-26</li></ul>
+
+<p class="meta" style="margin-top:48px">Generated 2026-10-19 12:40 by <code>python -m lab.reports</code>.
+Data: CDC ILINet via the Delphi Epidata <code>fluview</code> endpoint. All text is templated from computed numbers.</p>
+</main></body>
+</html>
