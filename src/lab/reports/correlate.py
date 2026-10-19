@@ -97,6 +97,17 @@ def lag_matrix(pairs: pd.DataFrame, locations: list[str], value: str = "peak_lag
     return m
 
 
+def select_correlated(
+    wide: pd.DataFrame, reference: str, n: int, before: pd.Timestamp | None = None
+) -> list[str]:
+    """Top-n locations by lag-0 correlation of weekly changes with `reference`,
+    using ONLY data strictly before `before` (so a backtest never sees its own test period)."""
+    hist = wide if before is None else wide.loc[wide.index < before]
+    changes = weekly_change(hist)
+    r = changes.drop(columns=reference).corrwith(changes[reference])
+    return r.sort_values(ascending=False).head(n).index.tolist()
+
+
 def select_leaders(
     wide: pd.DataFrame,
     reference: str,

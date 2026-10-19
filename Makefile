@@ -5,7 +5,7 @@ PY ?= python
 -include .env
 export
 
-.PHONY: install data reports forecast classify test clean
+.PHONY: install data reports forecast backtest train predict classify test clean
 
 install:
 	$(PY) -m pip install -e ".[dev]"
@@ -15,6 +15,17 @@ data:          ## download ILI data (Delphi)
 
 reports:       ## Module 2: lead/lag HTML reports -> outputs/reports/index.html
 	$(PY) -m lab.reports
+
+forecast: backtest train predict   ## Module 3: backtest, train, forecast next 4 weeks
+
+backtest:
+	$(PY) -m lab.forecast backtest
+
+train:
+	$(PY) -m lab.forecast train
+
+predict:
+	$(PY) -m lab.forecast predict
 
 test:
 	$(PY) -m pytest -q

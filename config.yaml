@@ -26,3 +26,41 @@ correlation:
   holiday_mmwr_weeks: [51, 52, 53, 1, 2]
   peak_smoothing_weeks: 3  # rolling mean used before locating each season's peak
   top_n_pairs: 10       # pairs listed in each report
+
+forecast:
+  target: nat
+  horizons: [1, 2, 3, 4]
+  # First forecast origin (start of 2023-24 season). Every later week is an origin;
+  # each origin refits on data up to and including that week only (expanding window).
+  backtest_start: "2023-10-01"
+  exclude_covid_from_training: true
+  # "Correlated states" (no state leads national; see Module 2): top-n by lag-0 correlation
+  # of weekly changes with national, selected ONLY on data before backtest_start.
+  n_correlated_states: 5
+  arima:
+    order: [2, 1, 1]      # fit on log(ILI)
+    window_weeks: 156     # trailing window refit at every origin
+  # Chosen from the backtest: XGBoost (national features only) had the lowest MAE/RMSE at h=2-4
+  # and was within 0.005 MAE of LightGBM at h=1; correlated-state features did not improve it.
+  production_model: xgboost    # model saved by `train` and used by `predict`
+  production_use_states: false
+  lightgbm:
+    n_estimators: 300
+    learning_rate: 0.05
+    num_leaves: 15
+    min_child_samples: 10
+    subsample: 0.8
+    subsample_freq: 1
+    colsample_bytree: 0.8
+    random_state: 42
+    verbose: -1
+    n_jobs: 1             # single thread is ~15x faster on ~250-row training sets
+  xgboost:
+    n_estimators: 300
+    learning_rate: 0.05
+    max_depth: 3
+    min_child_weight: 3
+    subsample: 0.8
+    colsample_bytree: 0.8
+    random_state: 42
+    n_jobs: 1
