@@ -21,7 +21,7 @@ from lab.classify.evaluate import evaluate, load_gold, write_gold_template  # no
 from lab.classify.extract import extract_all  # noqa: E402
 from lab.classify.methods import families  # noqa: E402
 from lab.classify.schema import STUDY_TYPES  # noqa: E402
-from lab.config import ROOT, load_config, path  # noqa: E402
+from lab.config import ROOT, load_config, path, load_env  # noqa: E402
 from lab.data.pubmed import fetch_abstracts  # noqa: E402
 from lab.logging_setup import setup_logging  # noqa: E402
 
@@ -148,6 +148,7 @@ def main() -> None:
     parser.add_argument("cmd", choices=["template", "run", "evaluate"])
     args = parser.parse_args()
     setup_logging()
+    load_env()
     {"template": cmd_template, "run": cmd_run, "evaluate": cmd_evaluate}[args.cmd]()
 
 

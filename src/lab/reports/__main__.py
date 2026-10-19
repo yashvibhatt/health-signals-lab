@@ -14,7 +14,7 @@ from datetime import datetime
 import pandas as pd
 from jinja2 import Environment, PackageLoader, select_autoescape
 
-from lab.config import load_config, path
+from lab.config import load_config, path, load_env
 from lab.data.delphi import (
     HHS_REGIONS, NATIONAL, date_to_epiweek, fetch_fluview, season_series, tidy_ili,
 )
@@ -67,6 +67,7 @@ def main() -> None:
     parser.add_argument("--refresh", action="store_true", help="re-download ILI data")
     args = parser.parse_args()
     setup_logging()
+    load_env()
 
     cfg = load_config()
     dcfg, ccfg = cfg["delphi"], cfg["correlation"]

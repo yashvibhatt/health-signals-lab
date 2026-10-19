@@ -4,6 +4,7 @@ import logging
 
 from lab.data.delphi import fetch_fluview, tidy_ili
 from lab.data.pubmed import fetch_abstracts
+from lab.config import load_env
 from lab.logging_setup import setup_logging
 
 log = logging.getLogger("lab.data")
@@ -14,6 +15,7 @@ def main() -> None:
     parser.add_argument("--refresh", action="store_true", help="re-download even if cached")
     args = parser.parse_args()
     setup_logging()
+    load_env()
 
     wide, coverage = tidy_ili(fetch_fluview(refresh=args.refresh))
     log.info("ILI table: %d weeks x %d locations (%s to %s)",

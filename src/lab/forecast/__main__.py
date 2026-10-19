@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
-from lab.config import load_config, path  # noqa: E402
+from lab.config import load_config, path, load_env  # noqa: E402
 from lab.data.delphi import asof_series, fetch_latest_national, issue_snapshot, load_ili, season_series  # noqa: E402
 from lab.forecast.backtest import default_specs, run_backtest, score  # noqa: E402
 from lab.forecast.features import feature_columns, make_features  # noqa: E402
@@ -262,6 +262,7 @@ def main() -> None:
     p.add_argument("--refresh", action="store_true", help="re-download latest ILI before predicting")
     args = parser.parse_args()
     setup_logging()
+    load_env()
     if args.cmd == "backtest":
         cmd_backtest(asof=not args.no_asof)
     elif args.cmd == "report":
