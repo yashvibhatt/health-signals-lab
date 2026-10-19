@@ -1,0 +1,56 @@
+{% extends "base.html.j2" %}
+{% block title %}{{ region_title }} ILI Lead-Lag{% endblock %}
+{% block body %}
+<p class="meta"><a href="index.html">&larr; All regions</a></p>
+<h1>{{ region_title }}: ILI lead/lag report</h1>
+<p class="meta">{{ states_included | join(", ") }}</p>
+
+<h2>Findings</h2>
+<ul class="findings">
+{% for f in findings %}<li>{{ f }}</li>{% endfor %}
+</ul>
+
+<h2>Data summary</h2>
+<div class="stats">
+  <div class="stat"><b>{{ summary.n_weeks }}</b><span>weeks ({{ summary.start }} to {{ summary.end }})</span></div>
+  <div class="stat"><b>{{ summary.n_seasons }}</b><span>flu seasons</span></div>
+  <div class="stat"><b>{{ summary.n_states }}</b><span>states analysed</span></div>
+  <div class="stat"><b>{{ summary.n_pairs }}</b><span>state pairs</span></div>
+</div>
+{% if excluded %}<p class="note">Data notes: {% for loc, why in excluded %}{{ loc }} ({{ why }}){% if not loop.last %}; {% endif %}{% endfor %}.</p>{% endif %}
+<div class="table-wrap"><table>
+  <tr><th>State</th><th>Mean ILI %</th><th>Max ILI %</th><th>Week of max</th><th>Missing weeks</th></tr>
+  {% for r in state_table %}<tr><td>{{ r.name }}</td><td>{{ "%.2f"|format(r.mean) }}</td><td>{{ "%.2f"|format(r.max) }}</td><td>{{ r.max_week }}</td><td>{{ r.missing }}</td></tr>{% endfor %}
+</table></div>
+<figure><img src="{{ slug }}_series.png" alt="Weekly ILI percentage for each state in {{ region_title }} and national, {{ summary.start }} to {{ summary.end }}">
+<figcaption>Weekly ILI % (share of outpatient visits for influenza-like illness). Black = national. Shaded = COVID-era seasons.</figcaption></figure>
+
+<h2>Lead/lag heatmap</h2>
+<p>Each cell compares the week-over-week change in ILI between two states at lags −{{ max_lag }} to +{{ max_lag }} weeks.
+The number is the lag with the highest correlation; <b>+k</b> means the row state's changes appear in the column state <b>k weeks later</b>.</p>
+<figure><img src="{{ slug }}_heatmap.png" alt="Heatmap of peak lag between every pair of states in {{ region_title }}">
+<figcaption>Blue = row leads, red = row lags, grey = same week. r = peak correlation of weekly changes.</figcaption></figure>
+
+<h2>Top pairs</h2>
+<div class="table-wrap"><table>
+  <tr><th>Pair</th><th>Peak lag (wk)</th><th>Peak r</th><th>r at lag 0</th><th>Gain over lag 0</th><th>Interpretation</th></tr>
+  {% for p in top_pairs %}<tr><td>{{ p.a }} – {{ p.b }}</td><td>{{ "%+d"|format(p.peak_lag) }}</td><td>{{ "%.3f"|format(p.peak_r) }}</td><td>{{ "%.3f"|format(p.r_lag0) }}</td><td>{{ "%.3f"|format(p.gain_over_lag0) }}</td><td>{{ p.text }}</td></tr>{% endfor %}
+</table></div>
+
+<h2>Each state vs national</h2>
+<figure><img src="{{ slug }}_vs_national.png" alt="Bar chart of each state's peak lag relative to national ILI">
+<figcaption>Positive = the state's weekly changes come before the national ones.</figcaption></figure>
+<div class="table-wrap"><table>
+  <tr><th>State</th><th>Peak lag (wk)</th><th>Peak r</th><th>Peak lag excl. COVID seasons</th><th>Peak lag excl. holiday weeks</th><th>Median peak timing vs national (wk)</th></tr>
+  {% for r in vs_table %}<tr><td>{{ r.name }}</td><td>{{ "%+d"|format(r.peak_lag) }}</td><td>{{ "%.3f"|format(r.peak_r) }}</td><td>{{ "%+d"|format(r.peak_lag_ex) }}</td><td>{{ "%+d"|format(r.peak_lag_hol) }}</td><td>{{ "%+.1f"|format(r.timing) }}</td></tr>{% endfor %}
+</table></div>
+
+<h2>Method</h2>
+<p class="note">Series: weighted ILI % per epiweek. Correlations use first differences (week-over-week change) so the shared
+winter seasonality does not dominate. r(k) = corr(ΔA<sub>t</sub>, ΔB<sub>t+k</sub>) for k ∈ [−{{ max_lag }}, +{{ max_lag }}].
+A pair is called lead/lag only if the peak is at k ≠ 0, peak r ≥ {{ min_peak_r }}, and peak r exceeds r at lag 0 by ≥ {{ min_gain }}
+(about one standard error of r at this sample size). Seasonal peaks are located on a {{ smooth }}-week centred rolling mean; peak-timing medians exclude {{ covid | join(" and ") }}.
+Holiday robustness masks MMWR weeks {{ holiday_weeks | join(", ") }}, when routine visits fall and ILI % jumps nationwide.
+The national series includes every state, so part of each state's lag-0 correlation with national is mechanical (largest for big states such as CA, TX, NY).
+These are associations in reported surveillance data, not evidence of transmission direction.</p>
+{% endblock %}

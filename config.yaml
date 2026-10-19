@@ -10,8 +10,9 @@ delphi:
   end_epiweek: 202639
   # Seasons with atypical (COVID-era) ILI dynamics; kept in the data but flagged.
   covid_seasons: ["2020-21", "2021-22"]
-  # A location must cover at least this share of weeks to be analysed.
-  min_coverage: 0.95
+  # A location must cover at least this share of weeks to be analysed. 0.85 ~= 7 of 8 seasons:
+  # keeps AK/CT/HI/OK/OR/SD/UT (missing only 2025-26) but drops FL (no data before 2021-22).
+  min_coverage: 0.85
   # Territories / sub-state jurisdictions outside the 50 states + DC comparison.
   excluded_locations: [pr, vi, jfk]
   # NY combined stops in 2025; NY excluding NYC is complete, so it stands in for NY.
@@ -20,4 +21,8 @@ delphi:
 correlation:
   max_lag: 4            # weeks, tested from -max_lag to +max_lag
   min_peak_r: 0.3       # peak cross-correlation needed to call a lead/lag pair
+  min_gain_over_lag0: 0.05  # ...and peak r must beat lag-0 r by this much (~1 s.e. of r at n~400)
+  # ILINet holiday effect: routine visits drop, ILI% jumps everywhere in the same week.
+  holiday_mmwr_weeks: [51, 52, 53, 1, 2]
+  peak_smoothing_weeks: 3  # rolling mean used before locating each season's peak
   top_n_pairs: 10       # pairs listed in each report

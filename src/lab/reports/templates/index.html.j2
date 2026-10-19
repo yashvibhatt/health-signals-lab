@@ -1,0 +1,27 @@
+{% extends "base.html.j2" %}
+{% block title %}ILI Lead-Lag Reports{% endblock %}
+{% block body %}
+<h1>ILI lead/lag reports by HHS region</h1>
+<p class="meta">{{ summary.n_weeks }} weeks, {{ summary.start }} to {{ summary.end }} · {{ summary.n_seasons }} seasons · {{ summary.n_states }} jurisdictions</p>
+
+<h2>Regions</h2>
+<div class="table-wrap"><table>
+  <tr><th>Report</th><th>States</th><th>Pairs</th><th>Lead/lag pairs</th><th>Strongest lead</th></tr>
+  {% for r in regions %}<tr><td><a href="{{ r.slug }}.html">{{ r.title }}</a></td><td>{{ r.n_states }}</td><td>{{ r.n_pairs }}</td><td>{{ r.n_leads }}</td><td>{{ r.top }}</td></tr>{% endfor %}
+</table></div>
+
+<h2>Nationwide: states whose weekly changes precede national ILI</h2>
+<p>Every jurisdiction vs the national series (all seasons). Sorted by peak r among states with a positive peak lag.</p>
+<div class="table-wrap"><table>
+  <tr><th>State</th><th>Leads national by (wk)</th><th>Peak r</th><th>r at lag 0</th></tr>
+  {% for r in national_leaders %}<tr><td>{{ r.name }}</td><td>{{ r.peak_lag }}</td><td>{{ "%.3f"|format(r.peak_r) }}</td><td>{{ "%.3f"|format(r.r_lag0) }}</td></tr>{% else %}<tr><td colspan="4">No state's weekly changes lead national under the lead/lag rule.</td></tr>{% endfor %}
+</table></div>
+<p class="meta">Peak-lag distribution, {{ summary.n_states - 1 }} states vs national:
+{% for lag, n in lag_counts %}lag {{ "%+d"|format(lag) }}: {{ n }}{% if not loop.last %} · {% endif %}{% endfor %}.
+Excluding holiday weeks: {% for lag, n in lag_counts_hol %}lag {{ "%+d"|format(lag) }}: {{ n }}{% if not loop.last %} · {% endif %}{% endfor %}.</p>
+<p>Across all {{ n_pairs_all }} state pairs, {{ n_pair_lag0 }} peak at lag 0 and {{ n_pair_leads }} meet the lead/lag rule
+(peak at k ≠ 0, r ≥ {{ min_peak_r }}, and ≥ {{ min_gain }} above lag-0 r). Full table: <code>xcorr_state_pairs.csv</code>.</p>
+
+{% if excluded %}<h2>Data coverage notes</h2>
+<ul>{% for loc, why in excluded %}<li><b>{{ loc }}</b>: {{ why }}</li>{% endfor %}</ul>{% endif %}
+{% endblock %}
