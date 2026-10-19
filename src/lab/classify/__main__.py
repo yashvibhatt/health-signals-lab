@@ -116,8 +116,8 @@ def cmd_evaluate() -> None:
     res["confusion"].to_csv(out / "confusion_matrix.csv")
     res["errors"].to_csv(out / "evaluation_errors.csv", index=False)
     _plot_confusion(res["confusion"], out / "confusion_matrix.png")
-    pc = res["per_class"].round(3)
-    pc["support"] = pc["support"].astype(int)
+    pc = res["per_class"].round(3).astype(object)
+    pc["support"] = res["per_class"]["support"].astype(int)
     md = ["# study_type evaluation vs human gold labels\n",
           f"Gold rows: {res['n_gold']} · scored: {res['n_scored']} · missing prediction: "
           f"{res['n_missing_prediction']}\n",
