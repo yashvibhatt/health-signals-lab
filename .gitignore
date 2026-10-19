@@ -1,0 +1,18 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+
+# Downloaded / cached data (reproducible with `make data`)
+data/raw/
+data/cache/
+
+# Generated model binaries
+outputs/models/
+
+.DS_Store

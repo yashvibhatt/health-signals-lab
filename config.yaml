@@ -1,0 +1,23 @@
+# Single source of truth for every tunable in the project.
+
+paths:
+  raw: data/raw
+  outputs: outputs
+
+delphi:
+  # 8 full flu seasons: 2018-19 through 2025-26 (season = MMWR week 40 -> week 39).
+  start_epiweek: 201840
+  end_epiweek: 202639
+  # Seasons with atypical (COVID-era) ILI dynamics; kept in the data but flagged.
+  covid_seasons: ["2020-21", "2021-22"]
+  # A location must cover at least this share of weeks to be analysed.
+  min_coverage: 0.95
+  # Territories / sub-state jurisdictions outside the 50 states + DC comparison.
+  excluded_locations: [pr, vi, jfk]
+  # NY combined stops in 2025; NY excluding NYC is complete, so it stands in for NY.
+  ny_location: ny_minus_jfk
+
+correlation:
+  max_lag: 4            # weeks, tested from -max_lag to +max_lag
+  min_peak_r: 0.3       # peak cross-correlation needed to call a lead/lag pair
+  top_n_pairs: 10       # pairs listed in each report
