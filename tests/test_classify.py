@@ -66,7 +66,11 @@ def test_method_families():
     assert method_family("Long short-term memory network") == "LSTM / RNN"
     assert method_family("negative binomial regression") == "Regression (GLM/GAM/linear)"
     assert method_family("SEIR model") == "Compartmental (SIR/SEIR)"
-    assert method_family("Wavelet coherence") == "Other"
+    assert method_family("gradient-boosting machines") == "Other gradient boosting"
+    assert method_family("interrupted time series analysis") == "Other time-series methods"
+    assert method_family("RT-qPCR") == "Lab / genomic methods"
+    assert method_family("Wavelet coherence") == "Other time-series methods"
+    assert method_family("Delphi survey") == "Other"
     assert families(["ARIMA", "SARIMA", "XGBoost"]) == ["ARIMA family", "XGBoost"]
 
 

@@ -74,10 +74,13 @@ def cmd_run() -> None:
         out / "failures.csv", index=False)
 
     # Count of abstracts using each method family, by publication year.
-    fam = ext.assign(family=ext["method_families"].str.split("; ")).explode("family")
+    fam = ext.assign(family=ext["method_families"].str.split("; ")).explode("family", ignore_index=True)
     fam = fam[fam["family"].fillna("") != ""]
-    by_year = pd.crosstab(fam["family"], fam["year"].astype(int), margins=True, margins_name="Total")
+    by_year = pd.crosstab(fam["family"], fam["year"].astype(int))
+    by_year["Total"] = by_year.sum(axis=1)
     by_year = by_year.sort_values("Total", ascending=False)
+    by_year = pd.concat([by_year.drop(index="Other", errors="ignore"), by_year.loc[["Other"]]])  # Other last
+    n_with = int((ext["methods"].fillna("") != "").sum())
     by_year.to_csv(out / "methods_by_year.csv")
     types = pd.crosstab(ext["study_type"], ext["year"].astype(int), margins=True, margins_name="Total")
     types.to_csv(out / "study_type_by_year.csv")
@@ -98,7 +101,9 @@ def cmd_run() -> None:
           "## Study type by publication year\n", _md(types),
           "\n## Abstracts using each method family, by publication year\n",
           "(An abstract counts once per family; families come from regex mapping of the "
-          "extracted method names in `lab/classify/methods.py`.)\n", _md(by_year)]
+          "extracted method names in `lab/classify/methods.py`; columns can sum to more than the number "
+          f"of abstracts. {n_with} of {len(ext)} abstracts name at least one method; "
+          f"{len(ext) - n_with} name none.)\n", _md(by_year)]
     (out / "summary.md").write_text("\n".join(md) + "\n")
     print("\n".join(md))
     cmd_template()
